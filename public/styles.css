@@ -1,0 +1,81 @@
+#box1 {
+    text-align: center;
+}
+
+#box2 {
+    padding-left: 20px;
+    padding-right: 20px;
+    padding-bottom: 20px;
+    background: #fff;
+    border-radius: 0 0 10px 10px;
+    -webkit-box-shadow: none;
+    -moz-box-shadow: none;
+    box-shadow: none;
+    position: relative;
+    overflow: hidden;
+}
+
+.outerbox {
+    width: 100%;
+    max-width: 500px;
+    border: 0px solid gray;
+    border-radius: 10px;
+    box-shadow: 0px 0px 30px 0px rgba(0, 0, 0, .4);
+    box-sizing: border-box;
+    margin: 10% auto 10% auto;
+}
+
+#login {
+    border-radius: 0 10px 0px 0px;
+}
+
+.p {
+    width: 50%;
+    float: right;
+    height: 50px;
+    background: #f9fbfb;
+}
+
+.tab-item-link {
+    text-decoration: none;
+    display: block;
+    color: grey;
+    font-weight: 700;
+    width: 100%;
+    height: 50px;
+    line-height: 50px;
+}
+
+#card {
+    margin-top: 40%;
+    margin-left: 20%;
+}
+
+#fPageBox {
+    width: 100%;
+    max-width: 500px;
+    max-height: 200px;
+    border: 0px solid gray;
+    border-radius: 10px;
+    box-shadow: 0px 0px 30px 0px rgba(0, 0, 0, .2);
+    box-sizing: border-box;
+    margin-top: 20%;
+    margin-left: 10%;
+}
+
+#butt1 {
+    width: 100%;
+    max-width: 500px;
+    max-height: 500px;
+    border: 0px solid gray;
+    border-radius: 10px;
+    box-shadow: 0px 0px 30px 0px rgba(0, 0, 0, .2);
+    box-sizing: border-box;
+    margin-top: 9%;
+    margin-left: 11.5%;
+    padding: 100px;
+}
+
+.form-group {
+    font-weight: bold;
+}
