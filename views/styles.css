@@ -39,7 +39,7 @@
 .tab-item-link {
     text-decoration: none;
     display: block;
-    color: grey;
+    color: black;
     font-weight: 700;
     width: 100%;
     height: 50px;
@@ -78,4 +78,8 @@
 
 .form-group {
     font-weight: bold;
+}
+
+.navbar-inner {
+    color: black;
 }
