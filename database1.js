@@ -5,7 +5,7 @@ const app = express();
 const User = require('./models/user');
 const passport = require('passport');
 const LocalStrategy = require('passport-local');
-var dbUrl = "mongodb+srv://prateek:prateek2606@freecluster.0qnz4.mongodb.net/test";
+var dbUrl = "mongodb+srv://prateek:prateek2606@freecluster.0qnz4.mongodb.net/voting";
 
 //passport
 app.use(passport.initialize());
@@ -91,7 +91,7 @@ for (var i = 0; i < 6; i++) {
             console.log(error);
         }
     })*/
-    User.register(new User({ username: big.RollNo, CGPA: big.CGPA, Backlogs: big.Backlogs }), big.Password, function(err, user) {
+    User.register(new User({ username: big.RollNo, CGPA: big.CGPA, Backlogs: big.Backlogs, voted: false }), big.Password, function(err, user) {
         if (err) {
             console.log("error");
             console.log(err);

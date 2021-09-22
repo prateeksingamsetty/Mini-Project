@@ -7,11 +7,12 @@ let passport = require('passport');
 let multer = require('multer');
 let LocalStrategy = require('passport-local')
 let User = require('./models/user')
-let Candidate = require('./models/candidate');
+let Candidate = require('./models/candidates');
+let voteDetail = require('./models/voteDetails');
 let catchAsync = require('./utils/catchAsync')
 let candidateData = Candidate.find({});
 const mongoose = require('mongoose');
-const candidate = require('./models/candidate');
+const { resourceLimits } = require('worker_threads');
 
 
 
@@ -55,7 +56,7 @@ let requireLogin = (req, res, next) => {
 }
 
 //mongoDB connection
-dbUrl = "mongodb+srv://prateek:prateek2606@freecluster.0qnz4.mongodb.net/test";
+dbUrl = "mongodb+srv://prateek:prateek2606@freecluster.0qnz4.mongodb.net/voting";
 mongoose.connect(dbUrl, { useNewUrlParser: true });
 
 mongoose.connection.once('open', function() {
@@ -68,7 +69,7 @@ mongoose.connection.once('open', function() {
 let storage = multer.diskStorage({
     destination: function(req, file, cb) {
         if (file.fieldname === 'image') {
-            cb(null, './uploads/');
+            cb(null, './public/uploads/');
         } else {
             cb(null, './agendaUploads/');
         }
@@ -98,7 +99,7 @@ app.get('/secret', (req, res) => {
 
 //Login Post Route    
 app.post('/login', passport.authenticate("local", {
-    successRedirect: '/secret',
+    successRedirect: '/home',
     failureRedirect: '/login',
 }), function(req, res) {});
 
@@ -109,6 +110,10 @@ app.post('/register', urlencodedParser, upload.fields([{ name: 'image', maxCount
     console.log("file ", req.files);
     var userName = req.body.username;
     var Password = req.body.password;
+
+    var casted = false
+
+
     var candidate = new Candidate({
         username: req.body.username,
         partyname: req.body.partyname,
@@ -120,20 +125,7 @@ app.post('/register', urlencodedParser, upload.fields([{ name: 'image', maxCount
 
     var obj = { username: userName };
 
-    /*dbo.collection('users').find(obj).toArray(function(err, result) {
-        if (err) {
-            console.log(err);
-        } else if (result.length == 0) {
-            console.log("user not found");
-        } else if (result[0].CGPA < 7.0 || result[0].Backlogs > 0) {
-            console.log("not eligible for registering");
-        } else {
-            req.session.user_id = result[0]._id;
-            console.log(result);
-        }
-    })*/
     User.findOne(obj).then(function(result) {
-        //console.log(res);
         Cgpa = result.CGPA;
         Backlogs = result.Backlogs;
         if (Cgpa < 7.0 || Backlogs > 0) {
@@ -142,29 +134,28 @@ app.post('/register', urlencodedParser, upload.fields([{ name: 'image', maxCount
             candidate
                 .save()
                 .then(
-                    (err, result) => {
-                        if (err) throw err;
+                    (result, err) => {
+                        if (err) throw err + "error1";
 
                         candidateData.exec(function(error, data) {
-                            if (error) throw error;
+                            if (error) throw error + "error2";
 
-                            console.log(result);
-                            res.render('home', { message: "You've successfully registered", records: data });
+                            console.log("result is" + result);
+                            res.render('home', { message: "You've successfully registered", records: data, casted: casted });
                         })
                     })
                 .catch(err => {
-                    console.log(err);
+                    console.log("error is" + err);
                     res.status(500).json({
                         error: err
                     });
                 });
-
         }
     })
 })
 
 //changePassword GET
-app.get('/changePassword', (req, res) => {
+app.get('/changePassword', isLoggedIn, (req, res) => {
     res.render('changePassword');
 })
 
@@ -185,25 +176,128 @@ app.post('/changePassword', (req, res) => {
 })
 
 //home page
-app.get('/home', (req, res) => {
+app.get('/home', isLoggedIn, (req, res) => {
     candidateData.exec(function(error, data) {
         if (error) throw error;
+        var casted;
+        User.findOne({ username: req.user.username }).then(
+            (result, err) => {
+                if (err) throw err;
 
-        res.render('home', { message: "You've successfully registered", records: data });
+                casted = result.voted;
+                console.log(casted);
+                res.render('home', { message: "You've successfully registered", records: data, username: req.user.username, casted: casted });
+            }
+        ).catch(err => {
+            console.log("error is" + err);
+            res.status(500).json({
+                error: err
+            });
+        });
+
     })
 })
 
 //secret page
-app.get('/secret', requireLogin, (req, res) => {
+app.get('/secret', isLoggedIn, (req, res) => {
     res.render('secret')
 })
 
-//logout 
-app.post('/logout', (req, res) => {
-    req.session.user_id = null;
-    res.render('login')
+//logout GET
+app.get('/logout', (req, res) => {
+    //req.session.user_id = null;
+    req.logout();
+    res.redirect('/')
 })
 
+
+//isLoggedIn function
+function isLoggedIn(req, res, next) {
+    if (req.isAuthenticated()) {
+        return next();
+    }
+    res.redirect('/');
+}
+
+//agendas page
+app.get('/agendas', (req, res) => {
+    candidateData.exec(function(error, data) {
+        if (error) throw error;
+
+        User.findOne({ username: req.user.username }).then(
+            (result, err) => {
+                if (err) throw err;
+
+                res.render('agendas', { message: "You've successfully registered", records: data, username: req.user.username });
+            }
+        ).catch(err => {
+            console.log("error is" + err);
+            res.status(500).json({
+                error: err
+            });
+        });
+
+    })
+})
+
+//Voting page
+app.post('/voteInc', isLoggedIn, (req, res) => {
+
+    var vote = new voteDetail({
+        username: req.user.username,
+        partyname: req.body.candName,
+    })
+
+    vote.save()
+        .then(
+            (result, err) => {
+                if (err) throw err + "error1";
+                console.log("result is" + result);
+            })
+        .catch(err => {
+            console.log("error is" + err);
+            res.status(500).json({
+                error: err
+            });
+        });
+
+    User.findOneAndUpdate({ username: req.user.username }, { $set: { voted: true } }, (err, result) => {
+        if (err) res.send(err + "error1");
+        console.log("result is" + result.voted);
+        res.render('voted', { message: "You've successfully voted", partyname: req.body.candName });
+    })
+})
+
+//results page
+app.get('/results', (req, res) => {
+
+    voteDetail.find({}, function(err, result) {
+        if (err) {
+            console.log(err);
+        } else {
+            var array = {}
+            for (var i = 0; i < result.length; i++) {
+                if (result[i].partyname in array) {
+                    array[result[i].partyname] += 1
+                } else {
+                    array[result[i].partyname] = 1
+                }
+            }
+            var maxi = -1;
+            for (var key in array) {
+                maxi = Math.max(maxi, array[key]);
+            }
+            var ans = [];
+            for (const key in array) {
+                if (array[key] === maxi) {
+                    ans.push(key);
+                }
+            }
+            var winner = ans[Math.floor(Math.random() * ans.length)];
+            res.render('results', { winner: winner })
+        }
+    });
+})
 
 
 app.listen(port, function(req, res) {

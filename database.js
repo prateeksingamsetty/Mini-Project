@@ -2,7 +2,7 @@ const mc = require('mongodb').MongoClient;
 
 const port = 3000;
 
-dbUrl = "mongodb+srv://prateek:prateek2606@freecluster.0qnz4.mongodb.net/test";
+dbUrl = "mongodb+srv://prateek:prateek2606@freecluster.0qnz4.mongodb.net/voting";
 
 var dbo;
 
@@ -10,7 +10,7 @@ mc.connect(dbUrl, { useNewUrlParser: true, useUnifiedTopology: true }, (err, cli
     if (err) {
         console.log("err in db conn", err);
     } else {
-        dbo = client.db("testing");
+        dbo = client.db("voting");
         console.log("connected to prateek successfully");
         var myObj = {
             "RollNo": {
@@ -64,7 +64,7 @@ mc.connect(dbUrl, { useNewUrlParser: true, useUnifiedTopology: true }, (err, cli
                 j++;
             }
 
-            dbo.collection('students').insertOne(big, (err, res) => {
+            dbo.collection('users').insertOne(big, (err, res) => {
                 if (err) {
                     console.log(err);
                 }

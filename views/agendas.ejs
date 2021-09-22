@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <h1>Agendas page</h1>
+
+    <div class="container">
+        <div class="row">
+            <%if(records.length>0){%>
+                <% records.forEach(function(data){ %>
+                    <div class="card" style="width: 20rem; margin: 20px;">
+                        <!-- <img class="card-img-top" style="height: 200px;" src="./uploads/<%=data.image%>" alt="Card image cap"> -->
+                        <embed src="./agendaUploads/<%=data.agenda%>" />
+                        <div class="card-body">
+                            <h4 style="text-align: center;" class="card-title">
+                                <%=data.partyname%>
+                            </h4>
+                            <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+                            <form action="/voteInc" method="post">
+                                <input type="hidden" name="candName" value="<%=data.partyname%>">
+                                <div class="text-center">
+                                    <button type="submit" class="btn btn-primary text-center">Cast Vote</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    <%}) } %>
+
+        </div>
+    </div>
+</body>
+
+</html>
