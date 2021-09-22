@@ -5,19 +5,20 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home</title>
+    <title>Document</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css">
-    <!-- <script type="text/javascript" src="handleClicks.js"></script> -->
-    <script>
-        function incCount() {
-            alert("hi")
+    <style>
+        table.table tbody tr td,
+        table.table thead tr th,
+        table.table thead {
+            border-left: 1px solid black;
+            border-right: 1px solid black;
         }
-    </script>
+    </style>
 </head>
 
 <body>
-
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <h4 class="navbar-brand" style="margin-bottom: 3px;">VNRpoll</h4>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
@@ -50,35 +51,31 @@
         </div>
     </nav>
 
+    <h1 style="text-align: center;">Statistics page</h1>
 
-    <%if(casted===false){%>
-        <div class="container ">
-            <div class="row ">
-                <%if(records.length>0){%>
-                    <% records.forEach(function(data){ %>
-                        <div class="card " style="width: 20rem; margin: 20px; ">
-                            <img class="card-img-top " style="height: 200px; " src="./uploads/<%=data.image%>" alt="Card image cap">
-                            <div class="card-body">
-                                <h4 style="text-align: center;" class="card-title">
-                                    <%=data.partyname%>
-                                </h4>
-                                <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
-                                <form action="/voteInc" method="post">
-                                    <input type="hidden" name="candName" value="<%=data.partyname%>">
-                                    <div class="text-center">
-                                        <button type="submit" class="btn btn-primary text-center">Cast Vote</button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                        <%}) } %>
 
-            </div>
-        </div>
-        <%}%>
-            <%if(casted===true){%>
-                <h1 style="text-align: center;">Your vote casted succesfully!</h1>
-                <%}%>
+
+    <table class="table table-bordered table-hover">
+        <thead>
+            <tr>
+                <th style="text-align: center;">Party Name</th>
+                <th style="text-align: center;">Votes</th>
+            </tr>
+        </thead>
+        <tbody>
+            <%if(records.length>0){%>
+                <% records.forEach(function(data){ %>
+                    <tr>
+                        <td style="text-align: center;">
+                            <%=data.partyname%>
+                        </td>
+                        <td style="text-align: center;">
+                            <%=data.votes%>
+                        </td>
+                    </tr>
+                    <%}) } %>
+        </tbody>
+    </table>
 
 
 </body>

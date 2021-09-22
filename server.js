@@ -186,6 +186,7 @@ app.get('/home', isLoggedIn, (req, res) => {
 
                 casted = result.voted;
                 console.log(casted);
+                //console.log(data);
                 res.render('home', { message: "You've successfully registered", records: data, username: req.user.username, casted: casted });
             }
         ).catch(err => {
@@ -295,6 +296,41 @@ app.get('/results', (req, res) => {
             }
             var winner = ans[Math.floor(Math.random() * ans.length)];
             res.render('results', { winner: winner })
+        }
+    });
+})
+
+//Statistics Page
+app.get('/statistics', (req, res) => {
+    voteDetail.find({}, function(err, result) {
+        if (err) {
+            console.log(err);
+        } else {
+            //console.log(result);
+            var array = {}
+            for (var i = 0; i < result.length; i++) {
+                if (result[i].partyname in array) {
+                    array[result[i].partyname] += 1
+                } else {
+                    array[result[i].partyname] = 1
+                }
+            }
+            console.log(array);
+
+            console.log(result);
+            var temp = []
+            temp.push(array);
+            //console.log(temp);
+            var new_array = [];
+            var i = 0;
+            for (var key in array) {
+                var obj = {}
+                obj['partyname'] = key;
+                obj['votes'] = array[key];
+                new_array[i++] = obj
+            }
+            console.log(new_array);
+            res.render('statistics', { records: new_array });
         }
     });
 })
