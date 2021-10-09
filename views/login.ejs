@@ -8,36 +8,50 @@
     <title>Mini Project</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="styles.css">
+    <!-- <style>
+        body {
+            background: url("https://media.gettyimages.com/photos/voting-box-and-election-image-picture-id884630084?b=1&k=20&m=884630084&s=170667a&w=0&h=hvJsikpNjA1qrw4vvlifQ3DF7CeUxVzqDM2pzs2hOkY=") no-repeat center fixed;
+            background-size: cover;
+        }
+    </style> -->
 </head>
 
 <body id="body">
-    <nav class="navbar navbar-expand-lg navbar-light">
-        <a class="navbar-brand" href="#">Cast your Vote</a>
+    <nav class="navbar navbar-expand-lg navbar-light bg-dark">
+        <a class="navbar-brand" href="#" style="color:white;">VNR POLL</a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
           <span class="navbar-toggler-icon"></span>
         </button>
 
-        <div class="collapse navbar-collapse" id="navbarSupportedContent">
-            <ul class="navbar-nav ml-auto">
+        <div class="collapse navbar-collapse justify-content-end" id="navbarSupportedContent">
+            <!-- <ul class="navbar-nav ml-auto">
                 <li class="nav-item active">
-                    <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
+                    <a class="nav-link" href="/">Home <span class="sr-only">(current)</span></a>
                 </li>
                 <li class="nav-item active">
-                    <a class="nav-link" href="#">Candidates<span class="sr-only">(current)</span></a>
+                    <a class="nav-link" href="/results">Results<span class="sr-only">(current)</span></a>
                 </li>
-                <li class="nav-item">
-                    <button class="btn btn-primary">
-                        <a href="#" style="color: white;">Contact Us</a>
-                    </button>
-                </li>
-            </ul>
+            </ul> -->
+            <form action="/" method="GET" class="form-inline my-2 my-lg-0" style="margin-right: 15px;">
+                <h5><a class="nav-link text-info" style="padding-top: 10px;" href="/">Home</a></h5>
+            </form>
+            <form action="/results" class="form-inline my-2 my-lg-0" style="margin-right: 15px;">
+                <h5><a class="nav-link text-info" style="padding-top: 10px;" href="/results">Results</a></h5>
+            </form>
         </div>
     </nav>
+
 
     <div class="outerbox">
         <div id="box1">
             <p class="tab-item-link" id="login" href="/">Login</p>
         </div>
+
+        <p style="text-align: center; color: red;" id="access">
+            <%if(data.view===true){%>
+                <%=data.msg%>
+                    <%}%>
+        </p>
 
         <div id="box2">
             <form id="myForm" method="POST" action="/login">
@@ -49,16 +63,13 @@
                     <label for="exampleInputPassword1">Password</label>
                     <input name="password" type="password" class="form-control" id="password" placeholder="Password">
                 </div>
-                <div class="form-check">
-                    <input type="checkbox" class="form-check-input" id="exampleCheck1">
-                    <label class="form-check-label" for="exampleCheck1">Change Password</label>
-                </div>
                 <br/>
                 <button type="submit" class="btn btn-primary">Submit</button>
             </form>
         </div>
 
     </div>
+
 </body>
 
 </html>

@@ -8,11 +8,16 @@ let multer = require('multer');
 let LocalStrategy = require('passport-local')
 let User = require('./models/user')
 let Candidate = require('./models/candidates');
+let Admin = require('./models/admin');
 let voteDetail = require('./models/voteDetails');
 let catchAsync = require('./utils/catchAsync')
 let candidateData = Candidate.find({});
 const mongoose = require('mongoose');
 const { resourceLimits } = require('worker_threads');
+const flash = require('connect-flash');
+
+const mc = require('mongodb').MongoClient;
+
 
 
 
@@ -24,20 +29,28 @@ app.set('view engine', 'ejs');
 let port = 3000;
 
 let sessionConfig = {
-    secret: 'thisshouldbeabettersecret!',
-    resave: false,
-    saveUninitialized: true,
-    cookie: {
-        httpOnly: true,
-        expires: Date.now() + 1000 * 60 * 60 * 24 * 7,
-        maxAge: 1000 * 60 * 60 * 24 * 7
+        secret: 'thisshouldbeabettersecret!',
+        resave: false,
+        saveUninitialized: true,
+        cookie: {
+            httpOnly: true,
+            expires: Date.now() + 1000 * 60 * 60 * 24 * 7,
+            maxAge: 1000 * 60 * 60 * 24 * 7
+        }
     }
-}
+    // Configure Sessions Middleware
+app.use(session(sessionConfig))
 
 app.use(express.urlencoded({ extended: true }));
+app.use(flash());
+var sessionFlash = function(req, res, next) {
+    res.locals.currentUser = req.user;
+    res.locals.error = req.flash('error');
+    res.locals.success = req.flash('success');
+    next();
 
-// Configure Sessions Middleware
-app.use(session(sessionConfig))
+}
+app.use(sessionFlash)
 
 //passport
 app.use(passport.initialize());
@@ -86,7 +99,7 @@ app.get('/', (req, res) => {
 })
 
 app.get('/login', (req, res) => {
-    res.render('login')
+    res.render('login', { data: { view: false, msg: "Username was not given" } })
 })
 
 app.get('/register', (req, res) => {
@@ -98,10 +111,61 @@ app.get('/secret', (req, res) => {
 })
 
 //Login Post Route    
-app.post('/login', passport.authenticate("local", {
-    successRedirect: '/home',
-    failureRedirect: '/login',
-}), function(req, res) {});
+app.post('/login', (req, res) => {
+    if (!req.body.username) {
+        console.log("username nottaken");
+        res.render('login', { data: { view: true, msg: "Username was not given" } })
+    } else {
+        if (!req.body.password) {
+            console.log("password not taken");
+            res.render('login', { data: { view: true, msg: "Password was not given" } })
+        } else {
+            console.log("Entered else");
+            passport.authenticate('local', function(err, user) {
+                console.log("Entered auth");
+                if (err) {
+                    console.log(err);
+
+                    res.render('login', { data: { view: true, msg: err } });
+                } else {
+                    if (!user) {
+                        console.log("usernotfound");
+                        res.render('login', { data: { view: true, msg: "Username or password incorrect " } })
+                    } else {
+                        req.login(user, function(err) {
+                            var casted = false;
+                            if (err) {
+                                console.log(err);
+                                res.render('login', { data: { view: true, msg: err } });
+                            } else {
+                                candidateData.exec(function(error, data) {
+                                        if (error) throw error;
+                                        var casted;
+                                        User.findOne({ username: req.user.username }).then(
+                                            (result, err) => {
+                                                if (err) throw err;
+
+                                                casted = result.voted;
+                                                console.log(casted);
+                                                res.render('home', { message: "You've successfully registered", records: data, username: req.user.username, casted: casted });
+                                            }
+                                        ).catch(err => {
+                                            console.log("error is" + err);
+                                            res.status(500).json({
+                                                error: err
+                                            });
+                                        });
+
+                                    })
+                                    // res.render('home', { message: "You've successfully registered", records: {}, username: req.user.username, casted: casted })
+                            }
+                        })
+                    }
+                }
+            })(req, res);
+        }
+    }
+})
 
 
 //Register Route
@@ -118,7 +182,7 @@ app.post('/register', urlencodedParser, upload.fields([{ name: 'image', maxCount
         username: req.body.username,
         partyname: req.body.partyname,
         image: req.files.image[0].filename,
-        agenda: req.files.agenda[0].filename
+        agenda: req.body.agenda
     })
     var Cgpa;
     var Backlogs;
@@ -177,6 +241,26 @@ app.post('/changePassword', (req, res) => {
 
 //home page
 app.get('/home', isLoggedIn, (req, res) => {
+
+    var showOpt;
+    // Admin.findOne({}, function(err, result) {
+    //     if (err) console.log(err);
+    //     else {
+    //         console.log(result[1].startDate);
+    //         if ((result[0].startDate - new Date()) < 0 && (result[0].endDate - new Date()) > 0) {
+    //             showOpt = true;
+    //         } else {
+    //             showOpt = false;
+    //         }
+    //     }
+    //     console.log(parseInt(result[0].startDate - new Date()));
+    //     console.log((result[0].endDate - Date()));
+    //     console.log(result[0].startDate);
+    //     console.log((new Date()).getTime());
+    //     console.log(result[0].endDate);
+    //     console.log("showOpt" + showOpt);
+    // })
+
     candidateData.exec(function(error, data) {
         if (error) throw error;
         var casted;
@@ -272,11 +356,22 @@ app.post('/voteInc', isLoggedIn, (req, res) => {
 //results page
 app.get('/results', (req, res) => {
 
+    var numberOfUsers;
+    User.find({}, function(err, response) {
+        if (err) {
+            console.log(err);
+        } else {
+            numberOfUsers = response.length;
+        }
+    })
+
+    var numberOfVoters;
     voteDetail.find({}, function(err, result) {
         if (err) {
             console.log(err);
         } else {
             var array = {}
+            numberOfVoters = result.length;
             for (var i = 0; i < result.length; i++) {
                 if (result[i].partyname in array) {
                     array[result[i].partyname] += 1
@@ -294,8 +389,14 @@ app.get('/results', (req, res) => {
                     ans.push(key);
                 }
             }
+            var display;
+            if (numberOfVoters == numberOfUsers) {
+                display = true;
+            } else {
+                display = false;
+            }
             var winner = ans[Math.floor(Math.random() * ans.length)];
-            res.render('results', { winner: winner })
+            res.render('results', { winner: winner, display: display });
         }
     });
 })
@@ -330,9 +431,32 @@ app.get('/statistics', (req, res) => {
                 new_array[i++] = obj
             }
             console.log(new_array);
-            res.render('statistics', { records: new_array });
+            res.render('statistics', { records: new_array, username: req.user.username });
         }
     });
+})
+
+app.get('/temppp', (req, res) => {
+    // if (req.user.username == "18071A05G1")
+    res.render('temppp')
+        // res.send(401);
+})
+
+app.post('/temppp', (req, res) => {
+    mc.connect(dbUrl, { useNewUrlParser: true, useUnifiedTopology: true }, (err, client) => {
+        if (err) {
+            console.log("err in db conn", err);
+        } else {
+            dbo = client.db("voting");
+            dbo.collection('admins').insertOne({ startDate: req.body.startDate, endDate: req.body.endDate }, (err, res) => {
+                if (err) {
+                    console.log(err);
+                } else {
+                    console.log("inserted successfully" + res.message)
+                }
+            });
+        }
+    })
 })
 
 
